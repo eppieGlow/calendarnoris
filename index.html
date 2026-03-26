@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendrier Norris — Univers Chuck</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f5f5f7;
+  --card:#ffffff;
+  --text:#1d1d1f;
+  --accent:#0071e3;
+  --chuck:#ff3b30;
+}
+
+body{
+  margin:0;
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 20px;
+  background:white;
+  box-shadow:0 1px 10px rgba(0,0,0,0.05);
+}
+
+.nav button{
+  background:var(--accent);
+  border:none;
+  color:white;
+  padding:8px 10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.container{
+  display:flex;
+  flex-wrap:wrap;
+}
+
+.sidebar{
+  width:260px;
+  background:white;
+  padding:15px;
+  border-right:1px solid #eee;
+}
+
+.calendar{
+  flex:1;
+  padding:10px;
+}
+
+.weekdays, .days{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+}
+
+.weekdays{
+  text-align:center;
+  font-size:0.7rem;
+  color:#888;
+}
+
+.day{
+  background:var(--card);
+  border-radius:10px;
+  padding:6px;
+  min-height:90px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.day:hover{
+  transform:scale(1.05);
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.day-number{
+  font-size:0.75rem;
+  font-weight:600;
+}
+
+.meta{
+  font-size:0.6rem;
+  color:var(--chuck);
+}
+
+.phrase{
+  font-size:0.6rem;
+  margin-top:4px;
+  font-style:italic;
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>📅 Calendrier Norris <strong>🔥 Chuck Edition</strong></div>
+  <div class="nav">
+    <button onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+    <span id="monthLabel"></span>
+    <button onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="sidebar">
+    <h3>💀 Univers Chuck</h3>
+    <p id="globalTime"></p>
+    <hr>
+    <p>🥋 Chuck Norris ne vit pas dans le temps, c’est le temps qui vit autour de lui.</p>
+  </div>
+
+  <div class="calendar">
+    <div class="weekdays">
+      <div>Dim</div><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div>
+    </div>
+    <div class="days" id="days"></div>
+  </div>
+
+</div>
+
+<script>
+let current = new Date();
+const chuckZero = new Date(2026, 2, 19);
+
+const phrases = [
+"C'est pas Chuck qui s'est fait arrêter, c'est la police qui a demandé l'autorisation",
+"La mort n'a pas emporté Chuck, Chuck a décidé de rejoindre la mort",
+"Chuck Norris compte jusqu'à l'infini... deux fois",
+"Quand Chuck saute, la gravité demande pardon",
+"Chuck Norris ne dort pas, il attend",
+"Chuck Norris ne fait pas de pompes, il pousse la Terre vers le bas",
+"Chuck Norris a déjà gagné contre lui-même... sans se battre",
+"Le temps s'écoule parce que Chuck lui a dit de courir",
+"Chuck Norris ne fait pas d’ombre, il crée de la lumière",
+"Personne ne choisit Chuck, c’est Chuck qui choisit",
+"Chuck Norris a inventé le calendrier pour savoir quand il a déjà gagné",
+"Les horloges tournent parce qu’elles ont peur de Chuck",
+"Chuck Norris peut diviser par zéro",
+"Le soleil se lève parce que Chuck ouvre les yeux",
+"Chuck Norris ne vieillit pas, il augmente en puissance",
+"Chuck Norris n’a pas peur du noir, c’est le noir qui a peur de lui",
+"Chuck Norris ne marche pas, le sol avance sous ses pieds",
+"Chuck Norris a déjà battu la lumière à la course",
+"Chuck Norris ne rêve pas, il programme la réalité",
+"Quand Chuck Norris entre dans une pièce, la pièce s’agrandit",
+"Chuck Norris peut frapper deux fois avant que tu comprennes",
+"Chuck Norris ne fait jamais d’erreur, le monde corrige ses erreurs",
+"Chuck Norris ne consulte pas Google, Google le consulte",
+"Chuck Norris peut entendre le silence",
+"Le bouton OFF a peur de Chuck Norris",
+"Chuck Norris ne cligne pas des yeux, il floute le monde",
+"Chuck Norris peut faire fondre la glace avec un regard",
+"Les règles ne s’appliquent pas à Chuck Norris",
+"Chuck Norris a déjà gagné à pile ou face… en lançant une pièce",
+"Chuck Norris ne rate jamais, il s’adapte",
+"Chuck Norris a déjà vaincu le concept d’échec",
+"Chuck Norris n’a pas d’ennemis, seulement des fans trop timides",
+"Chuck Norris peut lire ton avenir… et il a déjà corrigé tes erreurs",
+"Chuck Norris n’attend pas, c’est le temps qui attend",
+"Chuck Norris peut faire pleurer une calculatrice",
+"Chuck Norris ne se déplace pas, il se téléporte avec style",
+"Chuck Norris n’a pas besoin d’armes, son regard suffit",
+"Chuck Norris a inventé la gravité... puis l’a cassée",
+"Chuck Norris ne compte pas les secondes, les secondes le comptent",
+"Chuck Norris ne respire pas, l’air a besoin de lui",
+"Chuck Norris peut te regarder sans te voir... mais il te voit quand même",
+"Chuck Norris n’est pas en ligne, Internet est chez lui",
+"Chuck Norris peut désinstaller Windows avec une claque",
+"Chuck Norris peut faire un bug dans la matrice",
+"Chuck Norris n’a pas d’ennui, l’ennui l’évite",
+"Chuck Norris peut te battre au morpion sans jouer",
+"Chuck Norris n’a pas de limite, il est la limite",
+"Chuck Norris peut résoudre un Rubik’s Cube mentalement en regardant",
+"Chuck Norris a déjà compté jusqu’à l’infini en partant de zéro",
+"Chuck Norris peut gagner une partie d’échecs en jouant les blancs ET les noirs",
+"Chuck Norris ne transpire pas, il vaporise",
+"Chuck Norris a un abonnement illimité à la victoire",
+"Chuck Norris n’a pas besoin de réveil, le réveil a besoin de lui",
+"Chuck Norris peut charger son téléphone avec un regard",
+"Chuck Norris ne parle pas, les mots sortent de lui",
+"Chuck Norris peut arrêter le temps en regardant l’horloge",
+"Chuck Norris peut faire tourner la Terre dans l’autre sens",
+"Chuck Norris n’utilise pas de calculatrice, il connaît déjà le résultat",
+"Chuck Norris peut effacer un fichier avec une pensée",
+"Chuck Norris n’a pas de limite de crédit, c’est la banque qui en a une",
+"Chuck Norris peut gagner au loto après les résultats",
+"Chuck Norris ne se perd jamais, c’est le monde qui se retrouve",
+"Chuck Norris peut te faire oublier que tu allais poser une question",
+"Chuck Norris ne s’énerve jamais, c’est les autres qui paniquent",
+"Chuck Norris peut faire un screenshot de ton âme",
+"Chuck Norris peut charger un PDF avec son regard",
+"Chuck Norris n’a pas besoin de Wi-Fi, il est le réseau",
+"Chuck Norris peut battre un robot… en étant humain",
+"Chuck Norris peut parler aux animaux… et ils lui répondent",
+"Chuck Norris ne cligne pas des yeux, il actualise la réalité",
+"Chuck Norris peut faire un double saut dans la vraie vie",
+"Chuck Norris peut battre le boss final sans lancer le jeu",
+"Chuck Norris a déjà gagné dans un univers parallèle",
+"Chuck Norris peut créer un bug dans la réalité",
+"Chuck Norris peut supprimer la peur avec une tape",
+"Chuck Norris ne suit pas les règles, les règles le suivent",
+"Chuck Norris peut faire rire un rocher",
+"Chuck Norris peut allumer une ampoule avec ses pensées",
+"Chuck Norris peut faire planter un serveur en regardant",
+"Chuck Norris peut gagner sans jouer",
+"Chuck Norris peut battre le destin",
+"Chuck Norris peut réécrire l’histoire",
+"Chuck Norris peut finir un jeu avant de l’installer",
+"Chuck Norris peut lire un livre fermé",
+"Chuck Norris peut gagner contre son ombre",
+"Chuck Norris n’est pas une légende, les légendes sont Chuck Norris",
+"Chuck Norris peut te faire rire sans blague",
+"Chuck Norris peut te faire perdre sans jouer",
+"Chuck Norris peut diviser l’impossible",
+"Chuck Norris peut accélérer le temps",
+"Chuck Norris peut arrêter les pensées",
+"Chuck Norris peut créer des paradoxes",
+"Chuck Norris peut prédire ce message",
+"Chuck Norris peut changer le passé",
+"Chuck Norris peut changer le futur",
+"Chuck Norris peut changer le présent",
+"Chuck Norris est la réponse"
+];
+
+const daysContainer = document.getElementById("days");
+
+function getChuckData(date){
+  let diffDays = Math.floor((date - chuckZero)/(1000*60*60*24));
+
+  let years = Math.floor(diffDays / 365);
+  let months = Math.floor((diffDays % 365) / 30);
+  let days = diffDays % 30;
+
+  return {years, months, days, diffDays};
+}
+
+function randomPhrase(){
+  return phrases[Math.floor(Math.random()*phrases.length)];
+}
+
+function render(){
+  daysContainer.innerHTML = "";
+
+  let year = current.getFullYear();
+  let month = current.getMonth();
+
+  document.getElementById("monthLabel").innerText = current.toLocaleDateString('fr-FR',{month:'long', year:'numeric'});
+
+  let firstDay = new Date(year, month, 1).getDay();
+  let daysInMonth = new Date(year, month+1,0).getDate();
+
+  for(let i=0;i<firstDay;i++) daysContainer.appendChild(document.createElement("div"));
+
+  for(let d=1; d<=daysInMonth; d++){
+    let date = new Date(year, month, d);
+    let data = getChuckData(date);
+
+    let div = document.createElement("div");
+    div.className="day";
+
+    div.innerHTML = `
+      <div class="day-number">${d} 🥋</div>
+      <div class="meta">AN ${data.years}</div>
+      <div class="meta">M ${data.months}</div>
+      <div class="meta">J ${data.days}</div>
+      <div class="phrase">${randomPhrase()}</div>
+    `;
+
+    daysContainer.appendChild(div);
+  }
+}
+
+function nextMonth(){ current.setMonth(current.getMonth()+1); render(); }
+function prevMonth(){ current.setMonth(current.getMonth()-1); render(); }
+
+render();
+</script>
+
+</body>
+</html>
